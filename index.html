@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>JLS Corp. Salary Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #000000;
+      padding: 30px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      background: #d9d9d9;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+      text-align: left;
+    }
+
+    #footer{  
+      text-align: center;
+      color: hsl(36, 40%, 40%);
+      font-size: small
+    }
+
+    select, input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 10px;
+      background: hsl(36, 100%, 50%);
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: hsl(36, 100%, 60%);
+    }
+
+    .result {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .employee-photo {
+      margin-top: 10px;
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #007bff;
+    }
+
+    /* Modal Style */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      width: 300px;
+    }
+
+    .modal-content button {
+      background: #dc3545;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>JLS Corp. Salary Calculator</h1>
+
+  <div class="container">
+    <label for="category">Select Category:</label>
+    <select id="category">
+      <option value="">-- Select Category --</option>
+      <option value="Executive">Executive - ₱50,000</option>
+      <option value="Managerial">Managerial - ₱45,000</option>
+      <option value="Supervisory">Supervisory - ₱40,000</option>
+      <option value="Regular">Regular - ₱35,000</option>
+    </select>
+
+    <label for="employee">Select Employee:</label>
+    <select id="employee">
+      <option value="">-- Select Employee --</option>
+    </select>
+
+    <label for="cashAdvance">Cash Advance / Debt:</label>
+    <input type="number" id="cashAdvance" placeholder="Enter amount">
+
+    <button id="computeBtn">Compute Salary</button>
+
+    <p id="footer">| JLS Corp. | SALARY CALCULATOR | All Rights Reserved |</p>
+
+    <div class="result" id="result"></div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <p>Employee's salary is not sufficient for any transaction.</p>
+      <button id="closeModal">Close</button>
+    </div>
+  </div>
+
+  <script>
+    // ================== EMPLOYEE MASTERLIST ==================
+    const employees = [
+      { name: 'Juan Dela Cruz', img: 'https://i.pravatar.cc/100?img=1' },
+      { name: 'Maria Santos', img: 'https://i.pravatar.cc/100?img=2' },
+      { name: 'Pedro Pascual', img: 'https://i.pravatar.cc/100?img=3' },
+      { name: 'Ana Reyes', img: 'https://i.pravatar.cc/100?img=4' },
+      { name: 'Jose Ramirez', img: 'https://i.pravatar.cc/100?img=5' }
+    ];
+
+    const categorySalaries = {
+      Executive: 50000,
+      Managerial: 45000,
+      Supervisory: 40000,
+      Regular: 35000
+    };
+
+    // Monthly deductions
+    const deductions = {
+      pagibig: 500,
+      sss: 400,
+      philhealth: 700
+    };
+
+    const employeeSelect = document.getElementById('employee');
+
+    // Populate employee dropdown
+    employees.forEach((emp, index) => {
+      const option = document.createElement('option');
+      option.value = index;
+      option.textContent = emp.name;
+      employeeSelect.appendChild(option);
+    });
+
+    const computeBtn = document.getElementById('computeBtn');
+    const resultDiv = document.getElementById('result');
+    const modal = document.getElementById('modal');
+    const closeModal = document.getElementById('closeModal');
+
+    closeModal.addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+
+    computeBtn.addEventListener('click', () => {
+      const category = document.getElementById('category').value;
+      const empIndex = document.getElementById('employee').value;
+      const cashAdvance = parseFloat(document.getElementById('cashAdvance').value) || 0;
+
+      if (!category || empIndex === "") {
+        alert('Please select category and employee.');
+        return;
+      }
+
+      const baseSalary = categorySalaries[category];
+
+      const totalMandatoryDeductions = deductions.pagibig + deductions.sss + deductions.philhealth;
+      const totalDeductions = totalMandatoryDeductions + cashAdvance;
+      const netSalary = baseSalary - totalDeductions;
+
+      const emp = employees[empIndex];
+
+      if (netSalary < 0) {
+        modal.style.display = 'flex';
+        resultDiv.innerHTML = '';
+        return;
+      }
+
+      resultDiv.innerHTML = `
+        <h3>${emp.name}</h3>
+        <img src="${emp.img}" alt="${emp.name}" class="employee-photo">
+        <p><strong>Base Salary:</strong> ₱${baseSalary.toLocaleString()}</p>
+        <p>Pag-ibig: ₱${deductions.pagibig.toLocaleString()}</p>
+        <p>SSS: ₱${deductions.sss.toLocaleString()}</p>
+        <p>PhilHealth: ₱${deductions.philhealth.toLocaleString()}</p>
+        <p>Cash Advance/Debt: ₱${cashAdvance.toLocaleString()}</p>
+        <hr>
+        <p><strong>Total Deductions:</strong> ₱${totalDeductions.toLocaleString()}</p>
+        <h3>Net Salary: ₱${netSalary.toLocaleString()}</h3>
+      `;
+    });
+  </script>
+
+</body>
+</html>
